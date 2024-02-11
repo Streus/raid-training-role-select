@@ -1,3 +1,6 @@
+using static Applicant;
+using static Role;
+
 partial class Program {
     static bool FilterForBoonDps(Applicant a, Role boonRole) => 
         (a.PrimaryRole.IsBoonDps() || a.BackupRoles.IsBoonDps()) 
@@ -10,8 +13,8 @@ partial class Program {
 
         // ----- Healers -----
         var healerApplicants = remainingApplicants
-            .Where(a => a.PrimaryRole .IsHeal() || a.BackupRoles.IsHeal())
-            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsHeal() ? Applicant.PRIMARY_ROLE_BIAS : 0))
+            .Where(a => a.PrimaryRole.IsHeal() || a.BackupRoles.IsHeal())
+            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsHeal()? PRIMARY_ROLE_BIAS : 0))
             .ToArray();
 
         Console.WriteLine($"\n----- Selecting 2 Healers from {healerApplicants.Length} -----\n");
@@ -33,7 +36,7 @@ partial class Program {
         var sub1Boon = sub1Healer.AssignedRole.GetOppositeBoon();
         var sub1BoonApplicants = remainingApplicants
             .Where(a => FilterForBoonDps(a, sub1Boon))
-            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsBoonDps()? Applicant.PRIMARY_ROLE_BIAS : 0))
+            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsBoonDps()? PRIMARY_ROLE_BIAS : 0))
             .ToArray();
 
         Console.WriteLine($"\n----- Selecting 1 {sub1Boon.GetPrettyName()} from {sub1BoonApplicants.Length} -----\n");
@@ -49,7 +52,7 @@ partial class Program {
         var sub2Boon = sub2Healer.AssignedRole.GetOppositeBoon();
         var sub2BoonApplicants = remainingApplicants
             .Where(a => FilterForBoonDps(a, sub2Boon))
-            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsBoonDps()? Applicant.PRIMARY_ROLE_BIAS : 0))
+            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole.IsBoonDps()? PRIMARY_ROLE_BIAS : 0))
             .ToArray();
 
         Console.WriteLine($"\n----- Selecting 1 {sub2Boon.GetPrettyName()} from {sub2BoonApplicants.Length} -----\n");
@@ -63,15 +66,15 @@ partial class Program {
 
         // ----- x3 Sub 1 DPS -----
         var sub1DpsApplicants = remainingApplicants
-            .Where(a => a.PrimaryRole == Role.DPS || a.BackupRoles.HasFlag(Role.DPS))
-            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole == Role.DPS? Applicant.PRIMARY_ROLE_BIAS : 0))
+            .Where(a => a.PrimaryRole == DPS || a.BackupRoles.HasFlag(DPS))
+            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole == DPS? PRIMARY_ROLE_BIAS : 0))
             .ToArray();
 
         Console.WriteLine($"\n----- Selecting 3 DPS from {sub1DpsApplicants.Length} -----\n");
         Console.WriteLine($"{string.Join('\n', sub1DpsApplicants.Select(a => a.RenderedId))}\n");
 
         for (var i = 0; i < 3; i++) {
-            var member = new Member { Applicant = sub1DpsApplicants[i], AssignedRole = Role.DPS };
+            var member = new Member { Applicant = sub1DpsApplicants[i], AssignedRole = DPS };
             sub1.Add(member);
             remainingApplicants = remainingApplicants
                 .Except(new Applicant[]{ member.Applicant })
@@ -80,15 +83,15 @@ partial class Program {
 
         // ----- x3 Sub 2 DPS -----
         var sub2DpsApplicants = remainingApplicants
-            .Where(a => a.PrimaryRole == Role.DPS || a.BackupRoles.HasFlag(Role.DPS))
-            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole == Role.DPS? Applicant.PRIMARY_ROLE_BIAS : 0))
+            .Where(a => a.PrimaryRole == DPS || a.BackupRoles.HasFlag(DPS))
+            .OrderByDescending(a => Random.Next(99) + a.Bias + (a.PrimaryRole == DPS? PRIMARY_ROLE_BIAS : 0))
             .ToArray();
 
         Console.WriteLine($"\n----- Selecting 3 DPS from {sub2DpsApplicants.Length} -----\n");
         Console.WriteLine($"{string.Join('\n', sub2DpsApplicants.Select(a => a.RenderedId))}\n");
 
         for (var i = 0; i < 3; i++) {
-            var member = new Member { Applicant = sub2DpsApplicants[i], AssignedRole = Role.DPS };
+            var member = new Member { Applicant = sub2DpsApplicants[i], AssignedRole = DPS };
             sub2.Add(member);
             remainingApplicants = remainingApplicants
                 .Except(new Applicant[]{ member.Applicant })
@@ -99,5 +102,6 @@ partial class Program {
         Console.WriteLine($"\n## Sub 2:\n{string.Join('\n', sub2)}");
         Console.WriteLine($"\n## Guaranteed for next week:\n{string.Join('\n', remainingApplicants.Select(a => a.RenderedId))}");
         Console.WriteLine($"\n*Seed: {Seed:X8}*");
+        Console.WriteLine("*Review the source at https://github.com/Streus/raid-training-role-select*");
     }
 }
