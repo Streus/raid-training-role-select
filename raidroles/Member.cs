@@ -1,6 +1,11 @@
 class Member {
-    public Applicant Applicant { get; set; } = new Applicant();
-    public Role AssignedRole { get; set; } = Role.NONE;
+    public Member(Applicant a, Role assignedRole) {
+        Applicant = a;
+        AssignedRole = assignedRole;
+    }
+
+    public Applicant Applicant { get; }
+    public Role AssignedRole { get; }
 
     public string Name => Applicant.RenderedId;
 
