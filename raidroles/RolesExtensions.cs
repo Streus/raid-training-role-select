@@ -1,17 +1,25 @@
+using static Role;
+
 static class RoleExtensions {
-    public static bool IsHeal(this Role r) => r.HasFlag(Role.Q_HEAL) || r.HasFlag(Role.A_HEAL);
-    public static bool IsBoonDps(this Role r) => r.HasFlag(Role.Q_DPS) || r.HasFlag(Role.A_DPS);
-    public static bool IsQuick(this Role r) => r.HasFlag(Role.Q_HEAL) || r.HasFlag(Role.Q_DPS);
-    public static bool IsAlac(this Role r) => r.HasFlag(Role.A_HEAL) || r.HasFlag(Role.A_DPS);
-    public static Role GetOppositeBoon(this Role r) => r.HasFlag(Role.Q_HEAL)? Role.A_DPS : r.HasFlag(Role.A_HEAL)? Role.Q_DPS : Role.NONE;
+    public static bool IsHeal(this Role r) => r.HasFlag(Q_HEAL) || r.HasFlag(A_HEAL);
+    public static bool IsBoonDps(this Role r) => r.HasFlag(Q_DPS) || r.HasFlag(A_DPS);
+    public static bool IsQuick(this Role r) => r.HasFlag(Q_HEAL) || r.HasFlag(Q_DPS);
+    public static bool IsAlac(this Role r) => r.HasFlag(A_HEAL) || r.HasFlag(A_DPS);
+    public static Role GetOppositeBoon(this Role r) => r switch {
+        Q_HEAL => A_DPS,
+        A_HEAL => Q_DPS,
+        Q_DPS => A_HEAL,
+        A_DPS => Q_HEAL,
+        _ => throw new ArgumentException($"{r} is not a boon role")
+    };
 
     public static string GetPrettyName(this Role r) {
         return r switch {
-            Role.Q_HEAL => "Quick Heal",
-            Role.A_HEAL => "Alac Heal",
-            Role.Q_DPS => "Quick DPS",
-            Role.A_DPS => "Alac DPS",
-            Role.DPS => "DPS",
+            Q_HEAL => "Quick Heal",
+            A_HEAL => "Alac Heal",
+            Q_DPS => "Quick DPS",
+            A_DPS => "Alac DPS",
+            DPS => "DPS",
             _ => "None",
         };
     }
