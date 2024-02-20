@@ -54,23 +54,27 @@ partial class Program {
             Console.WriteLine($"\n----- Selecting for {role} -----\n");
 
             var prospectives = remainingApplicants
-                    .Where(a => role.HasFlag(a.PrimaryRole))
-                    .OrderBy(a => Random.Next())
-                    .Concat(
-                        remainingApplicants
-                            .Where(a => !role.HasFlag(a.PrimaryRole) && a.BackupRoles.HasFlag(role))
-                            .OrderBy(a => Random.Next())
-                    );
+                .Where(a => role.HasFlag(a.PrimaryRole))
+                .OrderBy(a => Random.Next())
+                .ToList();
+
+            var backupProspectives = remainingApplicants
+                .Except(prospectives)
+                .Where(a => a.BackupRoles.HasFlag(role))
+                .OrderBy(a => Random.Next())
+                .AsEnumerable();
+
+            prospectives.AddRange(backupProspectives);
 
             Console.WriteLine($"In drawing:\n{string.Join('\n', prospectives.Select(p => p.RenderedId))}\n");
 
-            var prospective = prospectives.First();
+            var prospective = prospectives[0];
 
             var assignedRole = role.HasFlag(prospective.PrimaryRole)
                 ? prospective.PrimaryRole
                 : role;
 
-            Console.WriteLine($"Placing {prospective.RenderedId} as {assignedRole.GetPrettyName()}.");
+            Console.WriteLine($"Placing {prospective.RenderedId} as {assignedRole.GetPrettyName()}");
 
             if (role.IsHeal()) {
                 squad.AddHealer(prospective, assignedRole);
