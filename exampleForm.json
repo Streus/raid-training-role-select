@@ -1,19 +1,19 @@
 {
-    "trainers": [1],
+    "trainers": [],
     "guaranteed": [],
     "primary":
     {
-        "qHeal": [2,3,4],
-        "aHeal": [1,5,6],
-        "qDps": [7,8,9],
-        "aDps": [10,11,12],
-        "dps": [13,14,15,16,17,18,19,20]
+        "qHeal": [],
+        "aHeal": [],
+        "qDps": [],
+        "aDps": [],
+        "dps": []
     },
     "backup":
     {
-        "bkHeal": [20,19,18],
-        "bkBoon": [17,16,15],
-        "bkDps": [1,2,3,4,5,6,7,8,9]
+        "bkHeal": [],
+        "bkBoon": [],
+        "bkDps": []
     },
     "mechanics":
     {

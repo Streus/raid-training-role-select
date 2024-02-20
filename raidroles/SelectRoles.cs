@@ -13,6 +13,8 @@ partial class Program {
         Console.WriteLine($"\n----- Placing {trainerApplicants.Count()} trainers -----\n");
         
         foreach (var a in trainerApplicants) {
+            Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+
             if ((Q_HEAL | A_HEAL).HasFlag(a.PrimaryRole)) {
                 squad.AddHealer(a, a.PrimaryRole);
             } else if ((Q_DPS | A_DPS).HasFlag(a.PrimaryRole)) {
@@ -35,6 +37,8 @@ partial class Program {
             Console.WriteLine($"\n----- Placing {guaranteedApplicants.Count()} guaranteeds -----\n");
 
             foreach (var a in guaranteedApplicants) {
+                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+
                 if ((Q_HEAL | A_HEAL).HasFlag(a.PrimaryRole)) {
                     squad.AddHealer(a, a.PrimaryRole);
                 } else if ((Q_DPS | A_DPS).HasFlag(a.PrimaryRole)) {
@@ -91,12 +95,11 @@ partial class Program {
 
         var finalSquad = squad.Build();
 
-        Console.WriteLine($"\n## Sub 1\n{string.Join('\n', finalSquad.FirstSub)}");
-        Console.WriteLine($"\n## Sub 2\n{string.Join('\n', finalSquad.SecondSub)}");
+        Console.WriteLine(finalSquad);
         if (remainingApplicants.Count > 0) {
             Console.WriteLine($"\n## Guaranteed for next week\n{string.Join('\n', remainingApplicants.Select(a => a.RenderedId))}");
         }
-        Console.WriteLine($"\n*Seed: {Seed:X8}*");
-        Console.WriteLine("*Review the source at https://github.com/Streus/raid-training-role-select*");
+        Console.WriteLine($"\nSeed: {Seed:X8}");
+        Console.WriteLine("Review the source at https://github.com/Streus/raid-training-role-select");
     }
 }
