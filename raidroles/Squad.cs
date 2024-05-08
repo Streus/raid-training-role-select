@@ -1,21 +1,21 @@
 using System.Collections.Immutable;
 
 class Squad {
-    private Squad(IEnumerable<Member> firstSub, IEnumerable<Member> secondSub) {
-        FirstSub = firstSub.ToImmutableArray();
-        SecondSub = secondSub.ToImmutableArray();
-    }
-
     public ImmutableArray<Member> FirstSub { get; }
     public ImmutableArray<Member> SecondSub { get; }
 
     public override string ToString() => 
         $"\n## Sub 1\n{string.Join('\n', FirstSub)}\n## Sub 2\n{string.Join('\n', SecondSub)}";
 
-    public const int HEALER_SLOT = 0;
-    public const int BOONER_SLOT = 1;
-    public const int DPS_SLOTS_START = 2;
-    public const int DPS_SLOTS_END = 4;
+    private Squad(IEnumerable<Member> firstSub, IEnumerable<Member> secondSub) {
+        FirstSub = firstSub.ToImmutableArray();
+        SecondSub = secondSub.ToImmutableArray();
+    }
+
+    private const int HEALER_SLOT = 0;
+    private const int BOONER_SLOT = 1;
+    private const int DPS_SLOTS_START = 2;
+    private const int DPS_SLOTS_END = 4;
 
     public class Builder {
         private readonly Member[][] Subs = new Member[][] { new Member[5], new Member[5] };
@@ -93,15 +93,15 @@ class Squad {
                 yield return (role, 1);
             }
 
+            var count = 0;
             foreach (var sub in Subs) {
-                var count = 0;
                 for (int i = DPS_SLOTS_START; i <= DPS_SLOTS_END; i++) {
                     if (sub[i] == null) {
                         count++;
                     }
                 }
-                yield return (Role.DPS, count);
             }
+            yield return (Role.DPS, count);
         }
 
         public Squad Build() => new(Subs[0], Subs[1]);

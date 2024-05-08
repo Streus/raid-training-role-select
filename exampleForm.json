@@ -14,27 +14,5 @@
         "bkHeal": [],
         "bkBoon": [],
         "bkDps": []
-    },
-    "mechanics":
-    {
-        "tank": [],
-        "w1VgCondi": [],
-        "w1SabCannon13": [],
-        "w1SabCannon24": [],
-        "w2SlothSlub": [],
-        "w2TrioMortars": [],
-        "w3EscortTower": [],
-        "w3EscortBw": [],
-        "w3TcFountain": [],
-        "w3TcSkip": [],
-        "w3TcTriple": [],
-        "w4MoClaim": [],
-        "w4MoDispel": [],
-        "w4MoProtect": [],
-        "w4DeimosHk": [],
-        "w5ShTank": [],
-        "w5ShPush": [],
-        "w5DhuumG1": [],
-        "w5DhuumKiteG2": []
     }
 }

@@ -23,7 +23,7 @@ partial class Program {
             name: "-f",
             description: "Read form data from a path specified in <form>"
         ) {
-            Arity = new ArgumentArity(0, 0)
+            Arity = new ArgumentArity(minimumNumberOfValues: 0, maximumNumberOfValues: 0)
         };
         root.AddOption(readFromFileOption);
 
