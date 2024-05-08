@@ -8,8 +8,10 @@ static class RoleExtensions {
     public static Role GetOppositeBoon(this Role r) => r switch {
         Q_HEAL => A_DPS,
         A_HEAL => Q_DPS,
+        Q_HEAL | A_HEAL => A_DPS | Q_DPS,
         Q_DPS => A_HEAL,
         A_DPS => Q_HEAL,
+        Q_DPS | A_DPS => A_HEAL | Q_HEAL,
         _ => throw new ArgumentException($"{r} is not a boon role")
     };
 
@@ -17,8 +19,10 @@ static class RoleExtensions {
         return r switch {
             Q_HEAL => "Quick Heal",
             A_HEAL => "Alac Heal",
+            Q_HEAL | A_HEAL => "Quick/Alac Heal",
             Q_DPS => "Quick DPS",
             A_DPS => "Alac DPS",
+            Q_DPS | A_DPS => "Quick/Alac DPS",
             DPS => "DPS",
             _ => "None",
         };

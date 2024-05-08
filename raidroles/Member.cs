@@ -4,10 +4,15 @@ class Member {
         AssignedRole = assignedRole;
     }
 
-    public Applicant Applicant { get; }
+    public Member(Role assignedRole) {
+        Applicant = null;
+        AssignedRole = assignedRole;
+    }
+
+    public Applicant? Applicant { get; }
     public Role AssignedRole { get; }
 
-    public string Name => Applicant.RenderedId;
+    public string Name => Applicant?.RenderedId ?? "OPEN";
 
     public override string ToString() => $"{AssignedRole.GetPrettyName()} -> {Name}";
 }

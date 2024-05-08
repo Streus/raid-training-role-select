@@ -4,94 +4,12 @@ partial class Program {
     static void SelectRoles(HashSet<Applicant> applicants) {
         var squad = new Squad.Builder();
         var remainingApplicants = applicants;
-        
-        // ----- Place trainers ----- //
-        var trainerApplicants = remainingApplicants
-            .Where(a => a.IsTrainer)
-            .OrderBy(a => Random.Next());
 
-        Console.WriteLine($"\n----- Placing {trainerApplicants.Count()} trainers -----\n");
-        
-        foreach (var a in trainerApplicants) {
-            Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+        remainingApplicants = PlaceTrainers(remainingApplicants, ref squad);
 
-            if ((Q_HEAL | A_HEAL).HasFlag(a.PrimaryRole)) {
-                squad.AddHealer(a, a.PrimaryRole);
-            } else if ((Q_DPS | A_DPS).HasFlag(a.PrimaryRole)) {
-                squad.AddBoonDps(a, a.PrimaryRole);
-            } else if (a.PrimaryRole == DPS) {
-                squad.AddDps(a);
-            }
-        }
+        remainingApplicants = PlaceGuaranteeds(remainingApplicants, ref squad);
 
-        remainingApplicants = remainingApplicants
-            .Except(trainerApplicants)
-            .ToHashSet();
-
-        // ----- Place guaranteeds ----- //
-        var guaranteedApplicants = remainingApplicants
-            .Where(a => a.IsGuaranteed)
-            .OrderBy(a => Random.Next());
-
-        if (guaranteedApplicants.Count() > 0) {
-            Console.WriteLine($"\n----- Placing {guaranteedApplicants.Count()} guaranteeds -----\n");
-
-            foreach (var a in guaranteedApplicants) {
-                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
-
-                if ((Q_HEAL | A_HEAL).HasFlag(a.PrimaryRole)) {
-                    squad.AddHealer(a, a.PrimaryRole);
-                } else if ((Q_DPS | A_DPS).HasFlag(a.PrimaryRole)) {
-                    squad.AddBoonDps(a, a.PrimaryRole);
-                } else if (a.PrimaryRole == DPS) {
-                    squad.AddDps(a);
-                }
-            }
-
-            remainingApplicants = remainingApplicants
-                .Except(guaranteedApplicants)
-                .ToHashSet();
-        }
-
-        // ----- Select for any remaining open roles -----
-        foreach (var role in squad.GetMissingRoles()) {
-            Console.WriteLine($"\n----- Selecting for {role} -----\n");
-
-            var prospectives = remainingApplicants
-                .Where(a => role.HasFlag(a.PrimaryRole))
-                .OrderBy(a => Random.Next())
-                .ToList();
-
-            var backupProspectives = remainingApplicants
-                .Except(prospectives)
-                .Where(a => a.BackupRoles.HasFlag(role))
-                .OrderBy(a => Random.Next())
-                .AsEnumerable();
-
-            prospectives.AddRange(backupProspectives);
-
-            Console.WriteLine($"In drawing:\n{string.Join('\n', prospectives.Select(p => p.RenderedId))}\n");
-
-            var prospective = prospectives[0];
-
-            var assignedRole = role.HasFlag(prospective.PrimaryRole)
-                ? prospective.PrimaryRole
-                : role;
-
-            Console.WriteLine($"Placing {prospective.RenderedId} as {assignedRole.GetPrettyName()}");
-
-            if (role.IsHeal()) {
-                squad.AddHealer(prospective, assignedRole);
-            } else if (role.IsBoonDps()) {
-                squad.AddBoonDps(prospective, assignedRole);
-            } else {
-                squad.AddDps(prospective);
-            }
-
-            remainingApplicants = remainingApplicants
-                .Except(new Applicant[] { prospective })
-                .ToHashSet();
-        }
+        remainingApplicants = FillSquad(remainingApplicants, ref squad);
 
         var finalSquad = squad.Build();
 
@@ -101,5 +19,90 @@ partial class Program {
         }
         Console.WriteLine($"\nSeed: {Seed:X8}");
         Console.WriteLine("Review the source at https://github.com/Streus/raid-training-role-select");
+    }
+
+    private static HashSet<Applicant> PlaceTrainers(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+        var trainerApplicants = remainingApplicants
+            .Where(a => a.IsTrainer)
+            .OrderBy(a => Random.Next());
+
+        if (trainerApplicants.Any()) {
+            Console.WriteLine($"\n----- Placing {trainerApplicants.Count()} trainers -----\n");
+            
+            foreach (var a in trainerApplicants) {
+                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+
+                squad.Add(new Member(a, a.PrimaryRole));
+            }
+        }
+
+        return remainingApplicants
+            .Except(trainerApplicants)
+            .ToHashSet();
+    }
+
+    private static HashSet<Applicant> PlaceGuaranteeds(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+        var guaranteedApplicants = remainingApplicants
+            .Where(a => a.IsGuaranteed)
+            .OrderBy(a => Random.Next());
+
+        if (guaranteedApplicants.Any()) {
+            Console.WriteLine($"\n----- Placing {guaranteedApplicants.Count()} guaranteeds -----\n");
+
+            foreach (var a in guaranteedApplicants) {
+                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+
+                squad.Add(new Member(a, a.PrimaryRole));
+            }
+        }
+
+        return remainingApplicants
+            .Except(guaranteedApplicants)
+            .ToHashSet();
+    }
+
+    private static HashSet<Applicant> FillSquad(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+        HashSet<Applicant> leftover = remainingApplicants;
+        foreach (var (role, count) in squad.GetMissingRoles()) {
+            Console.WriteLine($"\n----- Selecting for {count} {role} -----\n");
+
+            var prospectives = leftover
+                .Where(a => a.PrimaryRole != NONE && role.HasFlag(a.PrimaryRole))
+                .OrderBy(a => Random.Next())
+                .ToList();
+
+            var backupProspectives = leftover
+                .Except(prospectives)
+                .Where(a => a.BackupRoles != NONE && role.HasFlag(a.BackupRoles))
+                .OrderBy(a => Random.Next())
+                .AsEnumerable();
+
+            prospectives.AddRange(backupProspectives);
+
+            if (prospectives.Any()) {
+                Console.WriteLine($"In drawing:\n{string.Join('\n', prospectives.Select(p => p.RenderedId))}\n");
+            }
+
+            foreach (var confirmed in prospectives.Take(count)) {
+                var assignedRole = role.HasFlag(confirmed.PrimaryRole)
+                    ? confirmed.PrimaryRole
+                    : role;
+                
+                Console.WriteLine($"Placing {confirmed.RenderedId} as {assignedRole.GetPrettyName()}");
+
+                squad.Add(new Member(confirmed, assignedRole));
+
+                leftover = leftover
+                    .Except(new Applicant[] { confirmed })
+                    .ToHashSet();
+            }
+            
+            int numMissing = Math.Max(0, count - prospectives.Count);
+            for (int i = 0; i < numMissing; i++) {
+                squad.Add(new Member(role));
+            }
+        }
+        
+        return leftover;
     }
 }

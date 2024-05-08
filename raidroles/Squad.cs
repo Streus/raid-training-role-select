@@ -20,79 +20,87 @@ class Squad {
     public class Builder {
         private readonly Member[][] Subs = new Member[][] { new Member[5], new Member[5] };
 
-        public Builder AddHealer(Applicant a, Role assignedRole) {
-            if (!assignedRole.IsHeal()) throw new ArgumentException($"{assignedRole} is not a healer role");
+        public Builder Add(Member m) {
+            if (m.AssignedRole.IsHeal()) {
+                AddHealer(m);
+            } else if (m.AssignedRole.IsBoonDps()) {
+                AddBoonDps(m);
+            } else if (m.AssignedRole == Role.DPS) {
+                AddDps(m);
+            } else {
+                throw new ArgumentException($"{m} does not have an assigned role");
+            }
 
+            return this;
+        }
+
+        public void AddHealer(Member m) {
             foreach (var sub in Subs) {
                 if (sub[HEALER_SLOT] == null) {
-                    sub[HEALER_SLOT] = new Member(a, assignedRole);
-                    return this;
+                    sub[HEALER_SLOT] = m;
+                    return;
                 }
             }
 
-            throw new ArgumentException($"cannot place '{a}' first and second sub already have healers");
+            throw new ArgumentException($"cannot place {m} first and second sub already have healers");
         }
 
-        public Builder AddBoonDps(Applicant a, Role assignedRole) {
-            if (!assignedRole.IsBoonDps()) throw new ArgumentException($"{assignedRole} is not a boon dps role");
-
+        public void AddBoonDps(Member m) {
             foreach (var sub in Subs) {
                 if (sub[BOONER_SLOT] != null) continue;
 
                 var subHealer = sub[HEALER_SLOT];
-                if (subHealer == null || assignedRole == subHealer.AssignedRole.GetOppositeBoon()) {
-                    sub[BOONER_SLOT] = new Member(a, assignedRole);
-                    return this;
+                if (subHealer == null || subHealer.AssignedRole.GetOppositeBoon().HasFlag(m.AssignedRole)) {
+                    sub[BOONER_SLOT] = m;
+                    return;
                 }
             }
 
-            throw new ArgumentException($"'{a}' with {assignedRole} does not fit into either sub");
+            throw new ArgumentException($"{m} does not fit into either sub");
         }
 
-        public Builder AddDps(Applicant a) {
+        public void AddDps(Member m) {
             foreach (var sub in Subs) {
                 for (int i = DPS_SLOTS_START; i <= DPS_SLOTS_END; i++) {
                     if (sub[i] == null) {
-                        sub[i] = new Member(a, Role.DPS);
-                        return this;
+                        sub[i] = m;
+                        return;
                     }
                 }
             }
 
-            throw new ArgumentException($"cannot add '{a}'; squad is full");
+            throw new ArgumentException($"cannot add {m}; squad is full");
         }
 
-        public IEnumerable<Role> GetMissingRoles() {
+        public IEnumerable<(Role, int)> GetMissingRoles() {
             if (Subs[0][HEALER_SLOT] == null) {
-                yield return Subs[0][BOONER_SLOT] != null
-                    ? Subs[0][BOONER_SLOT].AssignedRole.GetOppositeBoon()
-                    : Role.Q_HEAL | Role.A_HEAL;
+                var role = Subs[0][BOONER_SLOT]?.AssignedRole.GetOppositeBoon() ?? Role.Q_HEAL | Role.A_HEAL;
+                yield return (role, 1);
             }
 
             if (Subs[1][HEALER_SLOT] == null) {
-                yield return Subs[1][BOONER_SLOT] != null
-                    ? Subs[1][BOONER_SLOT].AssignedRole.GetOppositeBoon()
-                    : Role.Q_HEAL | Role.A_HEAL;
+                var role = Subs[1][BOONER_SLOT]?.AssignedRole.GetOppositeBoon() ?? Role.Q_HEAL | Role.A_HEAL;
+                yield return (role, 1);
             }
 
             if (Subs[0][BOONER_SLOT] == null) {
-                yield return Subs[0][HEALER_SLOT] != null
-                    ? Subs[0][HEALER_SLOT].AssignedRole.GetOppositeBoon()
-                    : Role.Q_DPS | Role.A_DPS;
+                var role = Subs[0][HEALER_SLOT]?.AssignedRole.GetOppositeBoon() ?? Role.Q_DPS | Role.A_DPS;
+                yield return (role, 1);
             }
 
             if (Subs[1][BOONER_SLOT] == null) {
-                yield return Subs[1][HEALER_SLOT] != null
-                    ? Subs[1][HEALER_SLOT].AssignedRole.GetOppositeBoon()
-                    : Role.Q_DPS | Role.A_DPS;
+                var role = Subs[1][HEALER_SLOT]?.AssignedRole.GetOppositeBoon() ?? Role.Q_DPS | Role.A_DPS;
+                yield return (role, 1);
             }
 
             foreach (var sub in Subs) {
+                var count = 0;
                 for (int i = DPS_SLOTS_START; i <= DPS_SLOTS_END; i++) {
                     if (sub[i] == null) {
-                        yield return Role.DPS;
+                        count++;
                     }
                 }
+                yield return (Role.DPS, count);
             }
         }
 
