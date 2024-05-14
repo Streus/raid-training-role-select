@@ -15,16 +15,24 @@ static class RoleExtensions {
         _ => throw new ArgumentException($"{r} is not a boon role")
     };
 
-    public static string GetPrettyName(this Role r) {
-        return r switch {
-            Q_HEAL => "Quick Heal",
-            A_HEAL => "Alac Heal",
-            Q_HEAL | A_HEAL => "Quick/Alac Heal",
-            Q_DPS => "Quick DPS",
-            A_DPS => "Alac DPS",
-            Q_DPS | A_DPS => "Quick/Alac DPS",
-            DPS => "DPS",
-            _ => "None",
-        };
+    public static IEnumerable<Role> Decompose(this Role r) {
+        List<Role> decomposed = new();
+        foreach (Role single in Enum.GetValues<Role>().Skip(1)) {
+            if (r.HasFlag(single)) decomposed.Add(single);
+        }
+        return decomposed;
     }
+
+    public static Role Pin(this Role r, Random random) => r.Decompose().OrderBy(_ => random.Next()).FirstOrDefault(DPS);
+
+    public static string GetPrettyName(this Role r) => r switch {
+        Q_HEAL => "Quick Heal",
+        A_HEAL => "Alac Heal",
+        Q_HEAL | A_HEAL => "Quick/Alac Heal",
+        Q_DPS => "Quick DPS",
+        A_DPS => "Alac DPS",
+        Q_DPS | A_DPS => "Quick/Alac DPS",
+        DPS => "DPS",
+        _ => "None",
+    };
 }

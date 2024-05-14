@@ -11,6 +11,8 @@ partial class Program {
 
         remainingApplicants = FillSquad(remainingApplicants, ref squad);
 
+        remainingApplicants = DesignateNextGuaranteeds(remainingApplicants);
+
         var finalSquad = squad.Build();
 
         Console.WriteLine(finalSquad);
@@ -84,9 +86,9 @@ partial class Program {
             }
 
             foreach (var confirmed in prospectives.Take(count)) {
-                var assignedRole = role.HasFlag(confirmed.PrimaryRole)
+                var assignedRole = confirmed.PrimaryRole != NONE && role.HasFlag(confirmed.PrimaryRole)
                     ? confirmed.PrimaryRole
-                    : role;
+                    : role.Pin(Random);
                 
                 Console.WriteLine($"Placing {confirmed.RenderedId} as {assignedRole.GetPrettyName()}");
 
@@ -104,5 +106,11 @@ partial class Program {
         }
         
         return leftover;
+    }
+
+    private static HashSet<Applicant> DesignateNextGuaranteeds(HashSet<Applicant> remainingApplicants) {
+        return remainingApplicants
+            .Where(a => a.PrimaryRole != NONE)
+            .ToHashSet();
     }
 }
