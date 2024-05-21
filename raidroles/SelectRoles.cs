@@ -26,7 +26,7 @@ partial class Program {
     private static HashSet<Applicant> PlaceTrainers(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
         var trainerApplicants = remainingApplicants
             .Where(a => a.IsTrainer)
-            .OrderBy(a => Random.Next());
+            .OrderBy(_ => Random.Next());
 
         if (trainerApplicants.Any()) {
             Console.WriteLine($"\n----- Placing {trainerApplicants.Count()} trainers -----\n");
@@ -46,7 +46,7 @@ partial class Program {
     private static HashSet<Applicant> PlaceGuaranteeds(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
         var guaranteedApplicants = remainingApplicants
             .Where(a => a.IsGuaranteed)
-            .OrderBy(a => Random.Next());
+            .OrderBy(_ => Random.Next());
 
         if (guaranteedApplicants.Any()) {
             Console.WriteLine($"\n----- Placing {guaranteedApplicants.Count()} guaranteeds -----\n");
@@ -66,17 +66,17 @@ partial class Program {
     private static HashSet<Applicant> FillSquad(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
         HashSet<Applicant> leftover = remainingApplicants;
         foreach (var (role, count) in squad.GetMissingRoles()) {
-            Console.WriteLine($"\n----- Selecting for {count} {role} -----\n");
+            Console.WriteLine($"\n----- Selecting for {count} {role.GetPrettyName()} -----\n");
 
             var prospectives = leftover
                 .Where(a => a.PrimaryRole != NONE && role.HasFlag(a.PrimaryRole))
-                .OrderBy(a => Random.Next())
+                .OrderBy(_ => Random.Next())
                 .ToList();
 
             var backupProspectives = leftover
                 .Except(prospectives)
                 .Where(a => a.BackupRoles != NONE && role.HasFlag(a.BackupRoles))
-                .OrderBy(a => Random.Next())
+                .OrderBy(_ => Random.Next())
                 .AsEnumerable();
 
             prospectives.AddRange(backupProspectives);
