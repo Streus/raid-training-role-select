@@ -65,7 +65,7 @@ partial class Program {
             AnsiConsole.Write(
                 new Panel(new JsonText(formJson)) {
                     Header = new PanelHeader(settings.Path),
-                    Width = 64
+                    Width = 50
                 }
             );
 

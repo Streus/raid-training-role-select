@@ -55,7 +55,7 @@ partial class Program {
             if (!quiet) {
                 var panel = new Panel(print.ToString().TrimEnd()) {
                     Header = new PanelHeader($"[magenta]Placing {trainerApplicants.Count()} trainers[/]"),
-                    Width = 64
+                    Width = 50
                 };
                 AnsiConsole.Write(panel);
             }
@@ -83,7 +83,7 @@ partial class Program {
             if (!quiet) {
                 var panel = new Panel(print.ToString().TrimEnd()) {
                     Header = new PanelHeader($"[magenta]Placing {guaranteedApplicants.Count()} guaranteeds[/]"),
-                    Width = 64
+                    Width = 50
                 };
                 AnsiConsole.Write(panel);
             }
@@ -138,7 +138,7 @@ partial class Program {
             if (!quiet) {
                 var panel = new Panel(print.ToString().TrimEnd()) {
                     Header = new PanelHeader($"[green]Selecting for {count} {role.GetPrettyName()}[/]"),
-                    Width = 64
+                    Width = 50
                 };
                 AnsiConsole.Write(panel);
             }
