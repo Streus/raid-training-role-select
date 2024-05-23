@@ -1,15 +1,15 @@
 using System.Collections.Immutable;
 
 class Squad {
-    public ImmutableArray<Member> FirstSub { get; }
-    public ImmutableArray<Member> SecondSub { get; }
+    public ImmutableArray<Member> Sub1 { get; }
+    public ImmutableArray<Member> Sub2 { get; }
 
     public override string ToString() => 
-        $"\n## Sub 1\n{string.Join('\n', FirstSub)}\n## Sub 2\n{string.Join('\n', SecondSub)}";
+        $"\n## Sub 1\n{string.Join('\n', Sub1)}\n## Sub 2\n{string.Join('\n', Sub2)}";
 
     private Squad(IEnumerable<Member> firstSub, IEnumerable<Member> secondSub) {
-        FirstSub = firstSub.ToImmutableArray();
-        SecondSub = secondSub.ToImmutableArray();
+        Sub1 = firstSub.ToImmutableArray();
+        Sub2 = secondSub.ToImmutableArray();
     }
 
     private const int HEALER_SLOT = 0;

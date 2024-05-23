@@ -18,7 +18,7 @@ partial class Program {
         }
 
         public override async Task<int> ExecuteAsync(CommandContext context, Settings settings) {
-            var path = Path.GetFullPath(settings.Path);
+            var formPath = Path.GetFullPath(settings.Path);
 
             if (string.IsNullOrWhiteSpace(settings.Seed)) {
                 GenerateSeed();
@@ -26,14 +26,21 @@ partial class Program {
                 SetSeed(settings.Seed);
             }
 
-            using var stream = new FileInfo(path).OpenText();
-            var formInput = await stream.ReadToEndAsync();
-            var form = JsonConvert.DeserializeObject<Form>(formInput);
+            using var reader = new FileInfo(formPath).OpenText();
+            var formContent = await reader.ReadToEndAsync();
+            var form = JsonConvert.DeserializeObject<Form>(formContent);
 
-            var applicants = CollectApplicants(form!);
-            SelectRoles(applicants);
+            var receipt = SelectRoles(form ?? new());
 
-            //todo handle receipt
+            if (!settings.NoReceipt) {
+                var dir = Path.GetDirectoryName(formPath)!;
+                var receiptPath = Path.Combine(dir, $"{Path.GetFileNameWithoutExtension(formPath)}.receipt.json");
+
+                using StreamWriter writer = new(new FileInfo(receiptPath).Open(FileMode.Create));
+                var receiptJson = JsonConvert.SerializeObject(receipt);
+                await writer.WriteAsync(receiptJson);
+                await writer.FlushAsync();
+            }
 
             return 0;
         }

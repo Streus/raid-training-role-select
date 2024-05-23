@@ -34,13 +34,13 @@ class Form {
     }
 
     public class _BackupRoleApplicants {
-        [JsonProperty(PropertyName = "bkHeal")]
+        [JsonProperty(PropertyName = "heal")]
         public string[] BkHeal { get; set; } = Array.Empty<string>();
 
-        [JsonProperty(PropertyName = "bkBoon")]
+        [JsonProperty(PropertyName = "boon")]
         public string[] BkBoon { get; set; } = Array.Empty<string>();
 
-        [JsonProperty(PropertyName = "bkDps")]
+        [JsonProperty(PropertyName = "dps")]
         public string[] BkDps { get; set; } = Array.Empty<string>();
     }
 

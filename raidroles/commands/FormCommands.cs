@@ -36,7 +36,7 @@ partial class Program {
             };
 
             using StreamWriter writer = new(new FileInfo(path).Open(FileMode.Create));
-            var formJson = JsonConvert.SerializeObject(form, Formatting.Indented);
+            var formJson = JsonConvert.SerializeObject(form);
             await writer.WriteAsync(formJson);
             await writer.FlushAsync();
 
@@ -63,11 +63,10 @@ partial class Program {
             var formJson = await reader.ReadToEndAsync();
 
             AnsiConsole.Write(
-                new Panel(new JsonText(formJson))
-                    .Header(settings.Path)
-                    .Collapse()
-                    .RoundedBorder()
-                    .BorderColor(Color.White)
+                new Panel(new JsonText(formJson)) {
+                    Header = new PanelHeader(settings.Path),
+                    Width = 64
+                }
             );
 
             return 0;

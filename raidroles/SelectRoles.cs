@@ -1,40 +1,63 @@
+using System.Text;
+using Spectre.Console;
 using static Role;
 
 partial class Program {
-    static void SelectRoles(HashSet<Applicant> applicants) {
-        var squad = new Squad.Builder();
-        var remainingApplicants = applicants;
+    static Receipt SelectRoles(Form form, bool quiet = false) {
+        var squadBuilder = new Squad.Builder();
+        var remainingApplicants = CollectApplicants(form);
 
-        remainingApplicants = PlaceTrainers(remainingApplicants, ref squad);
+        remainingApplicants = PlaceTrainers(remainingApplicants, ref squadBuilder, quiet);
 
-        remainingApplicants = PlaceGuaranteeds(remainingApplicants, ref squad);
+        remainingApplicants = PlaceGuaranteeds(remainingApplicants, ref squadBuilder, quiet);
 
-        remainingApplicants = FillSquad(remainingApplicants, ref squad);
+        remainingApplicants = FillSquad(remainingApplicants, ref squadBuilder, quiet);
 
         remainingApplicants = DesignateNextGuaranteeds(remainingApplicants);
 
-        var finalSquad = squad.Build();
+        var squad = squadBuilder.Build();
 
-        Console.WriteLine(finalSquad);
-        if (remainingApplicants.Count > 0) {
-            Console.WriteLine($"\n## Guaranteed for next week\n{string.Join('\n', remainingApplicants.Select(a => a.RenderedId))}");
+        if (!quiet) {
+            AnsiConsole.WriteLine(squad.ToString());
+            if (remainingApplicants.Count > 0) {
+                AnsiConsole.WriteLine($"\n## Guaranteed for next week\n{string.Join('\n', remainingApplicants.Select(a => a.RenderedId))}");
+            }
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[gray]Seed: {Seed:X8}[/]");
+            AnsiConsole.MarkupLine("[gray]Review the source at https://github.com/Streus/raid-training-role-select[/]");
         }
-        Console.WriteLine($"\nSeed: {Seed:X8}");
-        Console.WriteLine("Review the source at https://github.com/Streus/raid-training-role-select");
+
+        return new Receipt() {
+            Seed = Seed.ToString("X8"),
+            Form = form,
+            Members = new Receipt.Member[][] {
+                squad.Sub1.Select(m => new Receipt.Member(m.Applicant?.DiscordId ?? "", m.AssignedRole.GetPrettyName())).ToArray(),
+                squad.Sub2.Select(m => new Receipt.Member(m.Applicant?.DiscordId ?? "", m.AssignedRole.GetPrettyName())).ToArray()
+            },
+            Guaranteeds = remainingApplicants.Select(a => a.DiscordId).ToArray()
+        };
     }
 
-    private static HashSet<Applicant> PlaceTrainers(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+    private static HashSet<Applicant> PlaceTrainers(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad, bool quiet) {
         var trainerApplicants = remainingApplicants
             .Where(a => a.IsTrainer)
             .OrderBy(_ => Random.Next());
+        
+        var print = new StringBuilder();
 
         if (trainerApplicants.Any()) {
-            Console.WriteLine($"\n----- Placing {trainerApplicants.Count()} trainers -----\n");
-            
             foreach (var a in trainerApplicants) {
-                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+                print.AppendLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
 
                 squad.Add(new Member(a, a.PrimaryRole));
+            }
+
+            if (!quiet) {
+                var panel = new Panel(print.ToString().TrimEnd()) {
+                    Header = new PanelHeader($"[magenta]Placing {trainerApplicants.Count()} trainers[/]"),
+                    Width = 64
+                };
+                AnsiConsole.Write(panel);
             }
         }
 
@@ -43,18 +66,26 @@ partial class Program {
             .ToHashSet();
     }
 
-    private static HashSet<Applicant> PlaceGuaranteeds(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+    private static HashSet<Applicant> PlaceGuaranteeds(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad, bool quiet) {
         var guaranteedApplicants = remainingApplicants
             .Where(a => a.IsGuaranteed)
             .OrderBy(_ => Random.Next());
 
-        if (guaranteedApplicants.Any()) {
-            Console.WriteLine($"\n----- Placing {guaranteedApplicants.Count()} guaranteeds -----\n");
+        var print = new StringBuilder();
 
+        if (guaranteedApplicants.Any()) {
             foreach (var a in guaranteedApplicants) {
-                Console.WriteLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+                print.AppendLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
 
                 squad.Add(new Member(a, a.PrimaryRole));
+            }
+
+            if (!quiet) {
+                var panel = new Panel(print.ToString().TrimEnd()) {
+                    Header = new PanelHeader($"[magenta]Placing {guaranteedApplicants.Count()} guaranteeds[/]"),
+                    Width = 64
+                };
+                AnsiConsole.Write(panel);
             }
         }
 
@@ -63,10 +94,10 @@ partial class Program {
             .ToHashSet();
     }
 
-    private static HashSet<Applicant> FillSquad(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad) {
+    private static HashSet<Applicant> FillSquad(HashSet<Applicant> remainingApplicants, ref Squad.Builder squad, bool quiet) {
         HashSet<Applicant> leftover = remainingApplicants;
         foreach (var (role, count) in squad.GetMissingRoles()) {
-            Console.WriteLine($"\n----- Selecting for {count} {role.GetPrettyName()} -----\n");
+            var print = new StringBuilder();
 
             var prospectives = leftover
                 .Where(a => a.PrimaryRole != NONE && role.HasFlag(a.PrimaryRole))
@@ -82,7 +113,7 @@ partial class Program {
             prospectives.AddRange(backupProspectives);
 
             if (prospectives.Any()) {
-                Console.WriteLine($"In drawing:\n{string.Join('\n', prospectives.Select(p => p.RenderedId))}\n");
+                print.AppendLine($"[gray]In drawing:\n{string.Join('\n', prospectives.Select(p => p.RenderedId))}[/]\n");
             }
 
             foreach (var confirmed in prospectives.Take(count)) {
@@ -90,7 +121,7 @@ partial class Program {
                     ? confirmed.PrimaryRole
                     : role.Pin(Random);
                 
-                Console.WriteLine($"Placing {confirmed.RenderedId} as {assignedRole.GetPrettyName()}");
+                print.AppendLine($"Placing {confirmed.RenderedId} as {assignedRole.GetPrettyName()}");
 
                 squad.Add(new Member(confirmed, assignedRole));
 
@@ -102,6 +133,14 @@ partial class Program {
             int numMissing = Math.Max(0, count - prospectives.Count);
             for (int i = 0; i < numMissing; i++) {
                 squad.Add(new Member(role));
+            }
+
+            if (!quiet) {
+                var panel = new Panel(print.ToString().TrimEnd()) {
+                    Header = new PanelHeader($"[green]Selecting for {count} {role.GetPrettyName()}[/]"),
+                    Width = 64
+                };
+                AnsiConsole.Write(panel);
             }
         }
         

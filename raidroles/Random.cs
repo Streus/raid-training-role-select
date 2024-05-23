@@ -13,8 +13,6 @@ partial class Program {
             Console.Error.WriteLine(e);
             return;
         }
-
-        Console.WriteLine($"Using seed: {Seed:X8}");
     }
 
     static string GenerateSeed() {
@@ -25,7 +23,6 @@ partial class Program {
         Random = new Random(Seed);
 
         string seedString = Seed.ToString("X8");
-        Console.WriteLine($"New seed: {seedString}");
         return seedString;
     }
 }
