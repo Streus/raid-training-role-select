@@ -47,17 +47,16 @@ partial class Program {
 
         if (trainerApplicants.Any()) {
             foreach (var a in trainerApplicants) {
-                print.AppendLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+                print.AppendLine($"Assigned {a.RenderedId} to {a.PrimaryRole.GetPrettyName()}");
 
                 squad.Add(new Member(a, a.PrimaryRole));
             }
 
             if (!quiet) {
-                var panel = new Panel(print.ToString().TrimEnd()) {
-                    Header = new PanelHeader($"[magenta]Placing {trainerApplicants.Count()} trainers[/]"),
-                    Width = 50
-                };
-                AnsiConsole.Write(panel);
+                WriteBox(
+                    header: $"[magenta]Assigning {trainerApplicants.Count()} trainers[/]",
+                    content: print.ToString()
+                );
             }
         }
 
@@ -75,17 +74,16 @@ partial class Program {
 
         if (guaranteedApplicants.Any()) {
             foreach (var a in guaranteedApplicants) {
-                print.AppendLine($"Placing {a.RenderedId} as {a.PrimaryRole.GetPrettyName()}");
+                print.AppendLine($"Assigned {a.RenderedId} to {a.PrimaryRole.GetPrettyName()}");
 
                 squad.Add(new Member(a, a.PrimaryRole));
             }
 
             if (!quiet) {
-                var panel = new Panel(print.ToString().TrimEnd()) {
-                    Header = new PanelHeader($"[magenta]Placing {guaranteedApplicants.Count()} guaranteeds[/]"),
-                    Width = 50
-                };
-                AnsiConsole.Write(panel);
+                WriteBox(
+                    header: $"[magenta]Assigning {guaranteedApplicants.Count()} guaranteeds[/]",
+                    content: print.ToString()
+                );
             }
         }
 
@@ -121,7 +119,7 @@ partial class Program {
                     ? confirmed.PrimaryRole
                     : role.Pin(Random);
                 
-                print.AppendLine($"Placing {confirmed.RenderedId} as {assignedRole.GetPrettyName()}");
+                print.AppendLine($"Assigned {confirmed.RenderedId} to {assignedRole.GetPrettyName()}");
 
                 squad.Add(new Member(confirmed, assignedRole));
 
@@ -136,11 +134,10 @@ partial class Program {
             }
 
             if (!quiet) {
-                var panel = new Panel(print.ToString().TrimEnd()) {
-                    Header = new PanelHeader($"[green]Selecting for {count} {role.GetPrettyName()}[/]"),
-                    Width = 50
-                };
-                AnsiConsole.Write(panel);
+                WriteBox(
+                    header: $"[yellow]Assigning {count} {role.GetPrettyName()}[/]",
+                    content: print.ToString()
+                );
             }
         }
         
@@ -151,5 +148,12 @@ partial class Program {
         return remainingApplicants
             .Where(a => a.PrimaryRole != NONE)
             .ToHashSet();
+    }
+
+    private static void WriteBox(string header, string content) {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine(header);
+        AnsiConsole.WriteLine(string.Empty.PadRight(50, '─'));
+        AnsiConsole.MarkupLine(content);
     }
 }
